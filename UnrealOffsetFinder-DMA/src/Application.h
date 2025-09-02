@@ -61,6 +61,16 @@ private:
      */
     void Shutdown();
 
+    /**
+     * @brief Initialize modern ImGui styling
+     */
+    void InitializeStyle();
+
+    /**
+     * @brief Initialize custom fonts for better typography
+     */
+    void InitializeFonts();
+
 private:
     // Core SFML components
     std::unique_ptr<sf::RenderWindow> m_window;     ///< Main application window
@@ -73,8 +83,9 @@ private:
     // Application state
     bool m_isRunning;                               ///< Application running state
     
-    // Window settings
-    static constexpr unsigned int WINDOW_WIDTH = 1200;   ///< Default window width
-    static constexpr unsigned int WINDOW_HEIGHT = 800;   ///< Default window height
-    static constexpr const char* WINDOW_TITLE = "Unreal Offset Finder - DMA"; ///< Window title
+    // Window configuration constants
+    static constexpr unsigned int DEFAULT_WINDOW_WIDTH = 1200;   ///< Default window width
+    static constexpr unsigned int DEFAULT_WINDOW_HEIGHT = 800;   ///< Default window height  
+    static constexpr const char* WINDOW_TITLE = "Unreal Offset Finder - DMA"; ///< Application title
+    static constexpr unsigned int TARGET_FPS = 60;               ///< Target framerate
 }; 

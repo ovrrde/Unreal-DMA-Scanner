@@ -1,14 +1,14 @@
 #include "UIManager.h"
 #include "../DMA/DMAManager.h"
 #include <imgui.h>
-#include <iostream>
-#include <sstream>
-#include <iomanip>
 #include <algorithm>
 #include <cctype>
 #include <cmath>
-#include <fstream>
 #include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 
 UIManager::UIManager()
     : m_showControlPanel(true)
@@ -21,7 +21,6 @@ UIManager::UIManager()
     , m_dmaManager(nullptr)
     , m_progressSpinner(0.0f)
 {
-    // Initialize input buffers
     memset(m_processNameBuffer, 0, sizeof(m_processNameBuffer));
     memset(m_offsetNameBuffer, 0, sizeof(m_offsetNameBuffer));
     memset(m_offsetAddressBuffer, 0, sizeof(m_offsetAddressBuffer));
@@ -34,7 +33,6 @@ UIManager::~UIManager()
 
 bool UIManager::Initialize()
 {
-    // Add initial log message
     m_logMessages.push_back("[INFO] UI Manager initialized successfully");
     
     std::cout << "UI Manager initialized" << std::endl;
@@ -43,45 +41,30 @@ bool UIManager::Initialize()
 
 void UIManager::Update(float deltaTime)
 {
-    // Update UI state here if needed
-    // Animate progress spinner for async operations
-    if (m_dmaManager && m_dmaManager->HasPendingOperations())
-    {
-        m_progressSpinner += deltaTime * 8.0f; // Spin speed
-        if (m_progressSpinner > 2.0f * 3.14159f)
-            m_progressSpinner -= 2.0f * 3.14159f;
-    }
-    else
-    {
-        m_progressSpinner = 0.0f;
-    }
+    m_progressSpinner += deltaTime * 6.0f; // Smooth spin speed
+    if (m_progressSpinner > 2.0f * 3.14159f)
+        m_progressSpinner -= 2.0f * 3.14159f;
 }
 
 void UIManager::Render()
 {
-    // Get the main viewport to calculate window sizes
     ImGuiIO& io = ImGui::GetIO();
     float windowWidth = io.DisplaySize.x;
     float windowHeight = io.DisplaySize.y;
     
-    // Calculate areas for our layout
     float menuBarHeight = 20.0f;
     float leftPanelWidth = windowWidth * 0.3f;
     float rightPanelWidth = windowWidth * 0.7f;
     float bottomPanelHeight = windowHeight * 0.25f;
     float topPanelHeight = windowHeight - menuBarHeight - bottomPanelHeight;
     
-    // Render main menu bar
     RenderMenuBar();
     
-    // Render all windows with calculated positions and sizes
     
-    // Main panels are always rendered
     RenderControlPanel();
     RenderOffsetFinder();
     RenderStatusWindow();
     
-    // Optional windows are rendered based on flags
     if (m_showMemoryViewer)
         RenderMemoryViewer();
         
@@ -116,36 +99,31 @@ void UIManager::RenderMenuBar()
             {
                 if (LoadOffsets())
                 {
-                    // Success message is handled in LoadOffsets()
-                }
+                            }
             }
             
             if (ImGui::MenuItem("Save Offsets", "Ctrl+S"))
             {
                 if (SaveOffsets())
                 {
-                    // Success message is handled in SaveOffsets()
-                }
+                    }
             }
             
             ImGui::Separator();
             
             if (ImGui::MenuItem("Save As..."))
             {
-                // For now, use a different filename - could add file dialog later
-                std::string filename = "offsets_" + std::to_string(time(nullptr)) + ".txt";
+                    std::string filename = "offsets_" + std::to_string(time(nullptr)) + ".txt";
                 if (SaveOffsets(filename))
                 {
-                    // Success message is handled in SaveOffsets()
-                }
+                    }
             }
             
             ImGui::Separator();
             
             if (ImGui::MenuItem("Exit", "Alt+F4"))
             {
-                // This would trigger application shutdown
-                m_logMessages.push_back("[INFO] Exit requested");
+                    m_logMessages.push_back("[INFO] Exit requested");
             }
             
             ImGui::EndMenu();
@@ -153,15 +131,13 @@ void UIManager::RenderMenuBar()
         
         if (ImGui::BeginMenu("View"))
         {
-            // Main panels are always visible, so show them as checked but disabled
-            ImGui::MenuItem("Control Panel", nullptr, nullptr, false);
+                ImGui::MenuItem("Control Panel", nullptr, nullptr, false);
             ImGui::MenuItem("Offset Finder", nullptr, nullptr, false);
             ImGui::MenuItem("Status Window", nullptr, nullptr, false);
             
             ImGui::Separator();
             
-            // Optional windows can still be toggled
-            ImGui::MenuItem("Memory Viewer", nullptr, &m_showMemoryViewer);
+                ImGui::MenuItem("Memory Viewer", nullptr, &m_showMemoryViewer);
             ImGui::MenuItem("Process Selector", nullptr, &m_showProcessSelector);
             
             ImGui::EndMenu();
@@ -185,7 +161,6 @@ void UIManager::RenderMenuBar()
                                     
                                     const auto& globals = result.result;
                                     
-                                    // Get main module base to calculate offsets
                                     uint64_t mainBase = m_dmaManager->GetMainModuleBase();
                                     
                                     if (globals.GWorld != 0)
@@ -242,7 +217,6 @@ void UIManager::RenderMenuBar()
                 m_logMessages.push_back("[INFO] Refreshing process list...");
                 if (m_dmaManager)
                 {
-                    // The DMA manager automatically refreshes, but we can force it
                     m_logMessages.push_back("[INFO] Process list will be refreshed automatically");
                 }
                 else
@@ -270,7 +244,6 @@ void UIManager::RenderMenuBar()
 
 void UIManager::RenderControlPanel()
 {
-    // Calculate position and size for left panel
     ImGuiIO& io = ImGui::GetIO();
     float windowWidth = io.DisplaySize.x;
     float windowHeight = io.DisplaySize.y;
@@ -285,21 +258,27 @@ void UIManager::RenderControlPanel()
     
     if (ImGui::Begin("Control Panel", nullptr, flags))
     {
-        // Process Selection Section
-        ImGui::Text("Process Selection");
-        ImGui::Separator();
+        DrawSectionHeader("Process Selection");
         
-        ImGui::InputText("Process Name", m_processNameBuffer, sizeof(m_processNameBuffer));
+        float availableWidth = ImGui::GetContentRegionAvail().x;
+        float browseButtonWidth = 80.0f;
+        float inputWidth = availableWidth - browseButtonWidth - ImGui::GetStyle().ItemSpacing.x;
+        
+        ImGui::PushItemWidth(inputWidth);
+        ImGui::InputText("##ProcessName", m_processNameBuffer, sizeof(m_processNameBuffer));
+        ImGui::PopItemWidth();
+        
         ImGui::SameLine();
-        
-        if (ImGui::Button("Browse"))
+        if (DrawButton("Browse", ImVec2(browseButtonWidth, 0)))
         {
             m_showProcessSelector = true;
         }
         
+        ImGui::Text("Process Name");
+        
         ImGui::Spacing();
         
-        if (ImGui::Button("Attach to Process", ImVec2(-1, 0)))
+        if (DrawButton("Attach to Process", ImVec2(-1, 0)))
         {
             std::string processName(m_processNameBuffer);
             if (!processName.empty())
@@ -309,7 +288,6 @@ void UIManager::RenderControlPanel()
                 
                 if (m_dmaManager)
                 {
-                    // Use async attachment to prevent UI blocking
                     m_dmaManager->AttachToProcessAsync(processName, 
                         [this, processName](const AsyncResult<bool>& result) {
                             if (result.isSuccess)
@@ -334,63 +312,74 @@ void UIManager::RenderControlPanel()
         ImGui::Spacing();
         ImGui::Spacing();
         
-        // DMA Status Section
-        ImGui::Text("DMA Status");
-        ImGui::Separator();
+        DrawSectionHeader("Process Status");
         
-        // Show connection status
         bool isConnected = m_dmaManager && m_dmaManager->IsConnected();
-        ImGui::Text("Status: %s", isConnected ? "Connected" : "Not Connected");
         
         if (isConnected)
         {
             auto processInfo = m_dmaManager->GetCurrentProcessInfo();
-            ImGui::Text("Target: %s (PID: %u)", processInfo.processName.c_str(), processInfo.processId);
+            uint64_t mainBase = m_dmaManager->GetMainModuleBase();
+            
+            DrawStatusIndicator("Connected", true);
+            
+            ImGui::Spacing();
+            
+            ImGui::Text("Process:");
+            ImGui::SameLine(80);
+            ImGui::TextColored(ImVec4(0.8f, 0.9f, 1.0f, 1.0f), "%s", processInfo.processName.c_str());
+            
+            ImGui::Text("PID:");
+            ImGui::SameLine(80);
+            ImGui::TextColored(ImVec4(0.8f, 0.9f, 1.0f, 1.0f), "%u", processInfo.processId);
+            
+            if (mainBase != 0)
+            {
+                std::string baseStr = m_dmaManager->FormatHexAddress(mainBase);
+                ImGui::Text("Base:");
+                ImGui::SameLine(80);
+                ImGui::TextColored(ImVec4(0.8f, 0.9f, 1.0f, 1.0f), "%s", baseStr.c_str());
+            }
+            
+            if (processInfo.imageSize != 0)
+            {
+                std::string sizeStr = m_dmaManager->FormatHexAddress(processInfo.imageSize);
+                ImGui::Text("Size:");
+                ImGui::SameLine(80);
+                ImGui::TextColored(ImVec4(0.8f, 0.9f, 1.0f, 1.0f), "%s", sizeStr.c_str());
+            }
+        }
+        else
+        {
+            DrawStatusIndicator("Not Connected", false);
+            
+            if (!m_selectedProcess.empty())
+            {
+                ImGui::Spacing();
+                ImGui::Text("Target:");
+                ImGui::SameLine(80);
+                ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", m_selectedProcess.c_str());
+                ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "(not connected)");
+            }
         }
         
-        // Show pending operations
         if (m_dmaManager && m_dmaManager->HasPendingOperations())
         {
             size_t pending = m_dmaManager->GetPendingOperationCount();
             
-            // Draw spinner
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+            DrawSpinner(SPINNER_RADIUS, 2.5f);
             ImGui::SameLine();
-            ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            ImVec2 pos = ImGui::GetCursorScreenPos();
-            float radius = 8.0f;
-            ImVec2 center = ImVec2(pos.x + radius, pos.y + radius);
-            
-            // Draw spinning circle
-            const int segments = 8;
-            for (int i = 0; i < segments; ++i)
-            {
-                float angle = (i / (float)segments) * 2.0f * 3.14159f + m_progressSpinner;
-                float alpha = (i / (float)segments) * 0.8f + 0.2f;
-                ImU32 color = ImGui::GetColorU32(ImVec4(1, 1, 0, alpha));
-                
-                float x = center.x + cos(angle) * radius * 0.5f;
-                float y = center.y + sin(angle) * radius * 0.5f;
-                draw_list->AddCircleFilled(ImVec2(x, y), 2.0f, color);
-            }
-            
-            ImGui::Dummy(ImVec2(radius * 2, radius * 2));
-            ImGui::PopStyleVar();
-            
-            ImGui::SameLine();
-            ImGui::TextColored(ImVec4(1, 1, 0, 1), "Operations pending: %zu", pending);
+            ImGui::TextColored(ImVec4(0.28f, 0.56f, 1.00f, 1.0f), "Operations pending: %zu", pending);
         }
         
         ImGui::Spacing();
         ImGui::Spacing();
         
-        // Quick Actions Section
-        ImGui::Text("Quick Actions");
-        ImGui::Separator();
+        DrawSectionHeader("Quick Actions");
         
         bool hasOperations = m_dmaManager && m_dmaManager->HasPendingOperations();
         
-        if (ImGui::Button("Scan UE Globals", ImVec2(-1, 0)))
+        if (DrawButton("Scan UE Globals", ImVec2(-1, 0), !hasOperations))
         {
             if (m_dmaManager && m_dmaManager->IsConnected())
             {
@@ -405,8 +394,6 @@ void UIManager::RenderControlPanel()
                                 m_logMessages.push_back("[SUCCESS] " + result.logMessage);
                                 
                                 const auto& globals = result.result;
-                                
-                                // Get main module base to calculate offsets
                                 uint64_t mainBase = m_dmaManager->GetMainModuleBase();
                                 
                                 if (globals.GWorld != 0)
@@ -451,7 +438,7 @@ void UIManager::RenderControlPanel()
             }
         }
         
-        if (ImGui::Button("Get Module Base", ImVec2(-1, 0)))
+        if (DrawButton("Get Module Base", ImVec2(-1, 0), !hasOperations))
         {
             if (m_dmaManager && m_dmaManager->IsConnected())
             {
@@ -485,16 +472,15 @@ void UIManager::RenderControlPanel()
             }
         }
         
-        if (ImGui::Button("Clear All Offsets", ImVec2(-1, 0)))
+        if (DrawButton("Clear All Offsets", ImVec2(-1, 0)))
         {
             m_offsetEntries.clear();
             m_logMessages.push_back("[INFO] Cleared all offset entries");
         }
         
-        // Add cancel operations button if there are pending operations
         if (hasOperations)
         {
-            if (ImGui::Button("Cancel Operations", ImVec2(-1, 0)))
+            if (DrawButton("Cancel Operations", ImVec2(-1, 0)))
             {
                 m_dmaManager->CancelAllOperations();
                 m_logMessages.push_back("[INFO] Cancelled all pending operations");
@@ -506,7 +492,6 @@ void UIManager::RenderControlPanel()
 
 void UIManager::RenderOffsetFinder()
 {
-    // Calculate position and size for right panel
     ImGuiIO& io = ImGui::GetIO();
     float windowWidth = io.DisplaySize.x;
     float windowHeight = io.DisplaySize.y;
@@ -522,9 +507,7 @@ void UIManager::RenderOffsetFinder()
     
     if (ImGui::Begin("Offset Finder", nullptr, flags))
     {
-        // Add new offset section
-        ImGui::Text("Add New Offset");
-        ImGui::Separator();
+        DrawSectionHeader("Add New Offset");
         
         ImGui::Columns(3, "AddOffsetColumns");
         ImGui::SetColumnWidth(0, 200);
@@ -543,7 +526,7 @@ void UIManager::RenderOffsetFinder()
         ImGui::InputText("##OffsetAddress", m_offsetAddressBuffer, sizeof(m_offsetAddressBuffer));
         ImGui::NextColumn();
         
-        if (ImGui::Button("Add##AddOffset"))
+        if (DrawButton("Add##AddOffset"))
         {
             AddOffsetEntry();
         }
@@ -552,18 +535,17 @@ void UIManager::RenderOffsetFinder()
         ImGui::Columns(1);
         ImGui::Spacing();
         
-        // Quick Save/Load buttons
-        if (ImGui::Button("Save Offsets"))
+        if (DrawButton("Save Offsets"))
         {
             SaveOffsets();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Load Offsets"))
+        if (DrawButton("Load Offsets"))
         {
             LoadOffsets();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Export As..."))
+        if (DrawButton("Export As..."))
         {
             std::string filename = "offsets_export_" + std::to_string(time(nullptr)) + ".txt";
             SaveOffsets(filename);
@@ -571,9 +553,7 @@ void UIManager::RenderOffsetFinder()
         
         ImGui::Spacing();
         
-        // Offset entries table
-        ImGui::Text("Current Offsets");
-        ImGui::Separator();
+        DrawSectionHeader("Current Offsets");
         
         if (ImGui::BeginTable("OffsetsTable", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable))
         {
@@ -599,8 +579,7 @@ void UIManager::RenderOffsetFinder()
                 ImGui::Text("%s", entry.value.c_str());
                 
                 ImGui::TableNextColumn();
-                ImGui::TextColored(entry.isValid ? ImVec4(0, 1, 0, 1) : ImVec4(1, 0, 0, 1), 
-                                 entry.isValid ? "Valid" : "Invalid");
+                DrawStatusIndicator(entry.isValid ? "Valid" : "Invalid", entry.isValid);
                 
                 ImGui::TableNextColumn();
                 
@@ -632,7 +611,6 @@ void UIManager::RenderOffsetFinder()
 
 void UIManager::RenderMemoryViewer()
 {
-    // For memory viewer, we'll center it or let it float since it's optional
     ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
     
     if (ImGui::Begin("Memory Viewer", &m_showMemoryViewer))
@@ -643,7 +621,7 @@ void UIManager::RenderMemoryViewer()
         static char addressBuffer[32] = "0x00000000";
         ImGui::InputText("Address", addressBuffer, sizeof(addressBuffer));
         
-        if (ImGui::Button("Read Memory"))
+        if (DrawButton("Read Memory"))
         {
             m_logMessages.push_back("[INFO] Memory viewer functionality will be implemented");
         }
@@ -656,18 +634,19 @@ void UIManager::RenderMemoryViewer()
 
 void UIManager::RenderProcessSelector()
 {
-    // Center the process selector on screen
     ImGuiIO& io = ImGui::GetIO();
     ImVec2 center = ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
     
-    if (ImGui::Begin("Process Selector", &m_showProcessSelector))
+    float maxHeight = io.DisplaySize.y * 0.8f; // Use max 80% of screen height
+    float windowHeight = std::min(450.0f, maxHeight); // Cap at 450px or 80% of screen
+    ImGui::SetNextWindowSize(ImVec2(650, windowHeight), ImGuiCond_Always);
+    
+    if (ImGui::Begin("Process Selector", &m_showProcessSelector, ImGuiWindowFlags_NoResize))
     {
         ImGui::Text("Available Processes");
         ImGui::Separator();
         
-        // Get actual process list from DMA manager
         static int selectedProcess = -1;
         static std::string selectedProcessName;
         
@@ -675,13 +654,15 @@ void UIManager::RenderProcessSelector()
         {
             std::vector<ProcessInfo> processes = m_dmaManager->GetProcessList();
             
-            // Add search filter
             static char searchBuffer[256] = "";
             ImGui::InputText("Filter", searchBuffer, sizeof(searchBuffer));
             ImGui::Separator();
             
-            // Create scrollable area for process list
-            ImGui::BeginChild("ProcessList", ImVec2(0, -40));
+            float buttonHeight = ImGui::GetFrameHeight();
+            float infoTextHeight = ImGui::GetTextLineHeightWithSpacing();
+            float reservedHeight = buttonHeight + infoTextHeight + ImGui::GetStyle().WindowPadding.y + ImGui::GetStyle().ItemSpacing.y * 3;
+            
+            ImGui::BeginChild("ProcessList", ImVec2(0, -reservedHeight));
             
             std::string filterStr = std::string(searchBuffer);
             std::transform(filterStr.begin(), filterStr.end(), filterStr.begin(), ::tolower);
@@ -691,7 +672,6 @@ void UIManager::RenderProcessSelector()
             {
                 const auto& process = processes[i];
                 
-                // Apply filter
                 if (!filterStr.empty())
                 {
                     std::string processName = process.processName;
@@ -700,7 +680,6 @@ void UIManager::RenderProcessSelector()
                         continue;
                 }
                 
-                // Format display string with PID and name
                 std::string displayText = "[" + std::to_string(process.processId) + "] " + process.processName;
                 
                 if (ImGui::Selectable(displayText.c_str(), selectedProcess == i))
@@ -715,11 +694,13 @@ void UIManager::RenderProcessSelector()
             
             ImGui::EndChild();
             
-            ImGui::Text("Found %d processes", (int)processes.size());
             if (!filterStr.empty())
             {
-                ImGui::SameLine();
-                ImGui::Text("(%d filtered)", displayIndex);
+                ImGui::Text("Found %d processes (%d shown)", (int)processes.size(), displayIndex);
+            }
+            else
+            {
+                ImGui::Text("Found %d processes", (int)processes.size());
             }
         }
         else
@@ -729,15 +710,15 @@ void UIManager::RenderProcessSelector()
         
         ImGui::Separator();
         
-        if (ImGui::Button("Select Process") && selectedProcess >= 0 && !selectedProcessName.empty())
+        float availableWidth = ImGui::GetContentRegionAvail().x;
+        float buttonWidth = (availableWidth - ImGui::GetStyle().ItemSpacing.x * 2) / 3.0f; 
+        if (DrawButton("Select Process", ImVec2(buttonWidth, 0)) && selectedProcess >= 0 && !selectedProcessName.empty())
         {
             m_showProcessSelector = false;
             m_logMessages.push_back("[INFO] Selected process: " + selectedProcessName);
             
-            // Try to attach to the selected process asynchronously
             if (m_dmaManager)
             {
-                // Create local copy to avoid static variable capture issue
                 std::string processName = selectedProcessName;
                 
                 m_dmaManager->AttachToProcessAsync(processName,
@@ -762,7 +743,7 @@ void UIManager::RenderProcessSelector()
         
         ImGui::SameLine();
         
-        if (ImGui::Button("Refresh"))
+        if (DrawButton("Refresh", ImVec2(buttonWidth, 0)))
         {
             if (m_dmaManager)
             {
@@ -773,7 +754,7 @@ void UIManager::RenderProcessSelector()
         
         ImGui::SameLine();
         
-        if (ImGui::Button("Cancel"))
+        if (DrawButton("Cancel", ImVec2(buttonWidth, 0)))
         {
             m_showProcessSelector = false;
         }
@@ -783,7 +764,6 @@ void UIManager::RenderProcessSelector()
 
 void UIManager::RenderStatusWindow()
 {
-    // Calculate position and size for bottom panel
     ImGuiIO& io = ImGui::GetIO();
     float windowWidth = io.DisplaySize.x;
     float windowHeight = io.DisplaySize.y;
@@ -798,21 +778,19 @@ void UIManager::RenderStatusWindow()
     
     if (ImGui::Begin("Status & Logs", nullptr, flags))
     {
-        if (ImGui::Button("Clear Logs"))
+        if (DrawButton("Clear Logs"))
         {
             m_logMessages.clear();
         }
         
         ImGui::Separator();
         
-        // Display log messages
         ImGui::BeginChild("LogArea");
         for (const auto& message : m_logMessages)
         {
             ImGui::TextWrapped("%s", message.c_str());
         }
         
-        // Auto-scroll to bottom
         if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
         {
             ImGui::SetScrollHereY(1.0f);
@@ -825,7 +803,6 @@ void UIManager::RenderStatusWindow()
 
 void UIManager::RenderAboutDialog()
 {
-    // Center the about dialog on screen
     ImGuiIO& io = ImGui::GetIO();
     ImVec2 center = ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
@@ -849,7 +826,7 @@ void UIManager::RenderAboutDialog()
         ImGui::TextWrapped("Attempts to find GWorld, GName, and GObject with pattern scanning.");
         ImGui::Spacing();
         
-        if (ImGui::Button("Close", ImVec2(-1, 0)))
+        if (DrawButton("Close", ImVec2(-1, 0)))
         {
             m_showAboutDialog = false;
         }
@@ -868,7 +845,6 @@ void UIManager::AddOffsetEntry()
         return;
     }
     
-    // Parse the input address
     uint64_t inputAddress = DMAManager::ParseHexAddress(addressInput);
     if (inputAddress == 0)
     {
@@ -876,7 +852,6 @@ void UIManager::AddOffsetEntry()
         return;
     }
     
-    // Check if this looks like an absolute address (large value) or an offset (small value)
     uint64_t mainBase = 0;
     if (m_dmaManager && m_dmaManager->IsConnected())
     {
@@ -888,7 +863,6 @@ void UIManager::AddOffsetEntry()
     
     if (mainBase != 0 && inputAddress > mainBase && inputAddress < (mainBase + 0x10000000)) // Within ~256MB of main base
     {
-        // Looks like an absolute address, convert to offset
         uint64_t offset = inputAddress - mainBase;
         offsetStr = DMAManager::FormatHexAddress(offset);
         absoluteStr = DMAManager::FormatHexAddress(inputAddress);
@@ -896,7 +870,6 @@ void UIManager::AddOffsetEntry()
     }
     else
     {
-        // Treat as offset
         offsetStr = DMAManager::FormatHexAddress(inputAddress);
         if (mainBase != 0)
         {
@@ -911,7 +884,6 @@ void UIManager::AddOffsetEntry()
     
     m_offsetEntries.emplace_back(name, offsetStr, absoluteStr);
     
-    // Clear input buffers
     memset(m_offsetNameBuffer, 0, sizeof(m_offsetNameBuffer));
     memset(m_offsetAddressBuffer, 0, sizeof(m_offsetAddressBuffer));
 }
@@ -937,11 +909,9 @@ bool UIManager::SaveOffsets(const std::string& filename)
             return false;
         }
 
-        // Write header with game/module information
         file << "# Unreal Offset Finder - Saved Offsets\n";
         file << "# File Format Version: 1.0\n";
         
-        // Get current time for more detailed timestamp
         std::time_t now = std::time(nullptr);
         char timeStr[100];
         struct tm timeInfo;
@@ -951,7 +921,6 @@ bool UIManager::SaveOffsets(const std::string& filename)
         file << "# Build Date: " << __DATE__ << " " << __TIME__ << "\n";
         file << "#\n";
         
-        // Add game/process information
         if (m_dmaManager && m_dmaManager->IsConnected())
         {
             ProcessInfo processInfo = m_dmaManager->GetCurrentProcessInfo();
@@ -982,7 +951,6 @@ bool UIManager::SaveOffsets(const std::string& filename)
         file << "# Note: Absolute addresses change with ASLR, use offsets!\n";
         file << "#\n";
 
-        // Write offset entries
         for (const auto& entry : m_offsetEntries)
         {
             file << entry.name << "," << entry.address << "," << entry.value << "\n";
@@ -1016,25 +984,21 @@ bool UIManager::LoadOffsets(const std::string& filename)
         size_t lineNumber = 0;
         std::string gameInfo = "";
 
-        // Clear existing offsets (ask user first in a real implementation)
         m_offsetEntries.clear();
         
         while (std::getline(file, line))
         {
             lineNumber++;
             
-            // Parse header information for game details
             if (line.find("# Process Name:") == 0)
             {
                 gameInfo = line.substr(15); // Remove "# Process Name: "
                 gameInfo.erase(gameInfo.find_last_not_of(" \t\r\n") + 1); // Trim
             }
             
-            // Skip comments and empty lines
             if (line.empty() || line[0] == '#')
                 continue;
 
-            // Parse CSV format: Name,Offset,AbsoluteAddress
             std::stringstream ss(line);
             std::string name, offset, absolute;
             
@@ -1042,8 +1006,7 @@ bool UIManager::LoadOffsets(const std::string& filename)
                 std::getline(ss, offset, ',') && 
                 std::getline(ss, absolute))
             {
-                // Trim whitespace
-                name.erase(name.find_last_not_of(" \t\r\n") + 1);
+                    name.erase(name.find_last_not_of(" \t\r\n") + 1);
                 offset.erase(offset.find_last_not_of(" \t\r\n") + 1);
                 absolute.erase(absolute.find_last_not_of(" \t\r\n") + 1);
 
@@ -1061,7 +1024,6 @@ bool UIManager::LoadOffsets(const std::string& filename)
 
         file.close();
         
-        // Show load success with game information
         std::string successMsg = "[SUCCESS] Loaded " + std::to_string(loadedCount) + " offsets from " + filename;
         if (!gameInfo.empty())
         {
@@ -1076,6 +1038,105 @@ bool UIManager::LoadOffsets(const std::string& filename)
         m_logMessages.push_back("[ERROR] Exception while loading: " + std::string(e.what()));
         return false;
     }
+}
+
+bool UIManager::DrawButton(const char* label, const ImVec2& size, bool enabled)
+{
+    if (!enabled)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.15f, 0.15f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.15f, 0.15f, 0.15f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.15f, 0.15f, 0.15f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.00f));
+    }
+    
+    bool result = enabled ? ImGui::Button(label, size) : (ImGui::Button(label, size), false);
+    
+    if (!enabled)
+    {
+        ImGui::PopStyleColor(4);
+    }
+    
+    return result;
+}
+
+void UIManager::DrawStatusIndicator(const char* status, bool isGood)
+{
+    ImVec4 color = isGood ? ImVec4(0.2f, 0.8f, 0.2f, 1.0f) : ImVec4(0.8f, 0.2f, 0.2f, 1.0f);
+    
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    float size = ImGui::GetTextLineHeight() * 0.6f;
+    ImVec2 rectMin = ImVec2(pos.x, pos.y + (ImGui::GetTextLineHeight() - size) * 0.5f);
+    ImVec2 rectMax = ImVec2(rectMin.x + size, rectMin.y + size);
+    
+    ImU32 colorU32 = ImGui::GetColorU32(color);
+    drawList->AddRectFilled(rectMin, rectMax, colorU32, 2.0f);
+    
+    ImGui::Dummy(ImVec2(size + 4.0f, ImGui::GetTextLineHeight()));
+    ImGui::SameLine();
+    ImGui::TextColored(color, "%s", status);
+}
+
+void UIManager::DrawSectionHeader(const char* title)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.Fonts->Fonts.Size > 1)
+    {
+        ImGui::PushFont(io.Fonts->Fonts[1]);
+    }
+    
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 1.00f, 1.00f));
+    ImGui::Text("%s", title);
+    ImGui::PopStyleColor();
+    
+    if (io.Fonts->Fonts.Size > 1)
+    {
+        ImGui::PopFont();
+    }
+    
+    ImGui::Separator();
+    ImGui::Spacing();
+}
+
+void UIManager::DrawSpinner(float radius, float thickness)
+{
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImVec2 center = ImVec2(pos.x + radius, pos.y + radius);
+    
+    const int segments = 30;
+    const float angleStep = 2.0f * 3.14159f / segments;
+    
+    for (int i = 0; i < segments; ++i)
+    {
+        float angle = i * angleStep + m_progressSpinner;
+        float nextAngle = (i + 1) * angleStep + m_progressSpinner;
+        
+        float alpha = (float)(segments - i) / segments * 0.8f + 0.2f;
+        ImU32 color = ImGui::GetColorU32(ImVec4(0.28f, 0.56f, 1.00f, alpha));
+        
+        ImVec2 p1 = ImVec2(
+            center.x + cos(angle) * (radius - thickness),
+            center.y + sin(angle) * (radius - thickness)
+        );
+        ImVec2 p2 = ImVec2(
+            center.x + cos(angle) * radius,
+            center.y + sin(angle) * radius
+        );
+        ImVec2 p3 = ImVec2(
+            center.x + cos(nextAngle) * radius,
+            center.y + sin(nextAngle) * radius
+        );
+        ImVec2 p4 = ImVec2(
+            center.x + cos(nextAngle) * (radius - thickness),
+            center.y + sin(nextAngle) * (radius - thickness)
+        );
+        
+        drawList->AddQuadFilled(p1, p2, p3, p4, color);
+    }
+    
+    ImGui::Dummy(ImVec2(radius * 2, radius * 2));
 }
 
  

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <imgui.h>
 
 // Forward declarations
 class DMAManager;
@@ -19,7 +20,7 @@ struct OffsetEntry
     bool isValid;               ///< Whether this offset is currently valid
     
     OffsetEntry(const std::string& n = "", const std::string& addr = "", const std::string& val = "")
-        : name(n), address(addr), value(val), isValid(false) {}
+        : name(n), address(addr), value(val), isValid(true) {}
 };
 
 /**
@@ -131,6 +132,35 @@ private:
      */
     void AddOffsetEntry();
 
+    /**
+     * @brief Draw a styled button with modern visuals
+     * @param label Button label
+     * @param size Button size
+     * @param enabled Whether button is enabled
+     * @return true if button was clicked
+     */
+    bool DrawButton(const char* label, const ImVec2& size = {0, 0}, bool enabled = true);
+
+    /**
+     * @brief Draw a status indicator with color and icon
+     * @param status Status text
+     * @param isGood Whether status is positive (green) or negative (red)
+     */
+    void DrawStatusIndicator(const char* status, bool isGood);
+
+    /**
+     * @brief Draw section header with modern styling
+     * @param title Section title
+     */
+    void DrawSectionHeader(const char* title);
+
+    /**
+     * @brief Draw an animated progress spinner
+     * @param radius Spinner radius
+     * @param thickness Spinner thickness
+     */
+    void DrawSpinner(float radius = 12.0f, float thickness = 3.0f);
+
 private:
     // Window visibility flags
     bool m_showControlPanel;        ///< Show main control panel
@@ -154,7 +184,9 @@ private:
     // References
     DMAManager* m_dmaManager;                   ///< Reference to DMA manager
 
-    // UI Configuration
-    static constexpr float PANEL_WIDTH = 400.0f;     ///< Default panel width
-    static constexpr float PANEL_HEIGHT = 600.0f;    ///< Default panel height
+    // UI Configuration constants
+    static constexpr float DEFAULT_PANEL_WIDTH = 400.0f;  ///< Default panel width
+    static constexpr float DEFAULT_PANEL_HEIGHT = 600.0f; ///< Default panel height
+    static constexpr float BUTTON_HEIGHT = 25.0f;         ///< Standard button height
+    static constexpr float SPINNER_RADIUS = 10.0f;        ///< Default spinner radius
 }; 

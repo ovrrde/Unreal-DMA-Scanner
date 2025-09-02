@@ -1,139 +1,60 @@
-# Visual Studio Files
+# Visual Studio
 .vs/
-*.user
-*.aps
-*.pch
-*.vspscc
-*_i.c
-*_p.c
-*.ncb
 *.suo
-*.tlb
-*.tlh
-*.bak
-*.cache
-*.ilk
-*.log
-*.lib
-*.sbr
-*.sdf
-*.opendb
-*.opensdf
-*.db
-*.ipch
-*.tmp
-*.temp
+*.user
+*.sln.docstates
+*.userprefs
+*.vcxproj.user
 
-# Build Results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
+# Build outputs
+bin/
+obj/
 x64/
 x86/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-bld/
-[Bb]in/
-[Oo]bj/
-[Ll]og/
-[Ll]ogs/
-
-# MSTest test Results
-[Tt]est[Rr]esult*/
-[Bb]uild[Ll]og.*
-
-# Build Outputs
+Debug/
+Release/
 *.exe
-*.pdb
 *.dll
-*.so
-*.dylib
-*.obj
-*.o
-*.a
-*.exp
-*.idb
 *.pdb
-*.pgc
-*.pgd
-*.rsp
-*.sbr
-*.tlb
-*.tli
-*.tlh
-*.tmp
-*.tmp_proj
-*.vspscc
-*.vssscc
-.builds
-*.pidb
-*.svclog
-*.scc
+*.ilk
+*.exp
+*.lib
+*.iobj
+*.ipdb
 
-# MSVC runtime
-*.crt
-*.manifest
-
-# ImGui specific files (user configuration)
-imgui.ini
-
-# Windows specific
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
+# Visual Studio cache/options directory
+.vs/
 
 # Visual Studio Code
 .vscode/
-*.code-workspace
 
 # JetBrains IDEs
 .idea/
-*.sln.iml
 
-# CMake (if used)
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-*.cmake
-!CMakeLists.txt
+# ImGui config
+imgui.ini
 
-# Backup files
-*.bak
+# Offset files (keep examples but ignore runtime generated ones)
+offsets.txt
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.stackdump
+
+# Temporary files
 *.tmp
 *.temp
 *~
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-Icon?
-
-# Package managers
-vcpkg_installed/
-packages/
-
-# Logs
+# Log files
 *.log
+
+# Build artifacts
+*.manifest
+*.res
 *.tlog
-
-# Temporary files
-*.swp
-*.swo
-*~
-
-# Profiling files
-*.psess
-*.vsp
-*.vspx
-*.sap 
+*.lastbuildstate
+*.idb
+*.pch

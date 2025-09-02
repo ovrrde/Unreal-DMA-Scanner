@@ -1,0 +1,21 @@
+# Unreal Offset Finder - Saved Offsets
+# File Format Version: 1.0
+# Generated on: 2024-12-14 15:45:32
+# Build Date: Dec 14 2024 15:30:22
+#
+# === Game Information ===
+# Process Name: Palworld-Win64-Shipping.exe
+# Process ID: 12345 (changes on restart)
+# Module Base: 0x7FF6E8BA0000 (changes with ASLR)
+# Module Size: 0x8A42000
+# Offset Count: 4
+#
+# === Format Information ===
+# Format: Name,Offset,AbsoluteAddress
+# Note: Offsets are relative to module base address
+# Note: Absolute addresses change with ASLR, use offsets!
+#
+Main Module Base,0x0,0x7FF6E8BA0000
+GWorld,0x85F8C10,0x7FF6F4198C10
+GNames,0x85B52A0,0x7FF6F47552A0
+GObjects,0x8532FC0,0x7FF6F40D2FC0 
